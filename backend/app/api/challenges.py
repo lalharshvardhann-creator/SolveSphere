@@ -3,10 +3,19 @@ from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
 
+from app.api.deps import get_current_active_user
 from app.db.session import get_db
+from app.models.user import User
+from app.schemas.ai_analysis import ChallengeAIAnalysisResponse
 from app.schemas.challenge import ChallengeCreate, ChallengeResponse, ChallengeUpdate
 from app.schemas.common import PaginatedResponse
+from app.services.ai_analysis_service import AIAnalysisService
 from app.services.challenge_service import ChallengeService
+from app.services.gemini_service import (
+    GeminiAPIError,
+    GeminiConfigurationError,
+    GeminiValidationError,
+)
 
 router = APIRouter(prefix="/api/challenges", tags=["Challenges"])
 
@@ -104,3 +113,67 @@ def update_challenge(
             detail=f"Challenge with ID {challenge_id} not found.",
         )
     return challenge
+
+
+@router.post(
+    "/{challenge_id}/analyze",
+    response_model=ChallengeAIAnalysisResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Trigger Gemini AI analysis for a challenge",
+    description="Run structured AI analysis on an existing challenge using Google Gemini, returning and persisting domain insights.",
+)
+def analyze_challenge(
+    challenge_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_active_user),
+):
+    try:
+        analysis = AIAnalysisService.analyze_and_store_challenge(
+            db=db,
+            challenge_id=challenge_id,
+        )
+        return analysis
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=str(e),
+        )
+    except GeminiConfigurationError as e:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail=str(e),
+        )
+    except GeminiAPIError as e:
+        raise HTTPException(
+            status_code=status.HTTP_502_BAD_GATEWAY,
+            detail=f"AI service error: {str(e)}",
+        )
+    except GeminiValidationError as e:
+        raise HTTPException(
+            status_code=status.HTTP_502_BAD_GATEWAY,
+            detail=f"AI validation error: {str(e)}",
+        )
+
+
+@router.get(
+    "/{challenge_id}/ai-analysis",
+    response_model=ChallengeAIAnalysisResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Get stored AI analysis for a challenge",
+    description="Retrieve previously executed AI analysis and structured insights for a specific challenge.",
+)
+def get_challenge_ai_analysis(
+    challenge_id: int,
+    db: Session = Depends(get_db),
+):
+    analysis = AIAnalysisService.get_analysis_by_challenge_id(
+        db=db,
+        challenge_id=challenge_id,
+    )
+    if not analysis:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"No AI analysis found for challenge with ID {challenge_id}.",
+        )
+    return analysis
+

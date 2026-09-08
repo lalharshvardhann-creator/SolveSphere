@@ -1,3 +1,7 @@
+from app.schemas.ai_analysis import (
+    ChallengeAIAnalysisResponse,
+    ChallengeAIAnalysisStructured,
+)
 from app.schemas.auth import (
     TokenResponse,
     UserLoginRequest,
@@ -25,6 +29,8 @@ __all__ = [
     "ChallengeUpdate",
     "ChallengeResponse",
     "ChallengeLocationResponse",
+    "ChallengeAIAnalysisStructured",
+    "ChallengeAIAnalysisResponse",
     "InstitutionCreate",
     "InstitutionResponse",
     "InstitutionDetailResponse",
