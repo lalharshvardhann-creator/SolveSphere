@@ -90,6 +90,10 @@ class GeminiService:
                     response_mime_type="application/json",
                     response_schema=ChallengeAIAnalysisStructured,
                     temperature=0.2,
+                    automatic_function_calling=types.AutomaticFunctionCallingConfig(
+                        disable=True
+                    ),
+                        
                 ),
             )
         except Exception as e:
