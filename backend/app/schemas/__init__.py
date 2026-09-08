@@ -1,3 +1,9 @@
+from app.schemas.auth import (
+    TokenResponse,
+    UserLoginRequest,
+    UserRegisterRequest,
+    UserResponse,
+)
 from app.schemas.challenge import (
     ChallengeCreate,
     ChallengeLocationResponse,
@@ -24,4 +30,8 @@ __all__ = [
     "InstitutionDetailResponse",
     "InstitutionExpertiseCreate",
     "InstitutionExpertiseResponse",
+    "UserRegisterRequest",
+    "UserLoginRequest",
+    "TokenResponse",
+    "UserResponse",
 ]

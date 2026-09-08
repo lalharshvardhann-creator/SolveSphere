@@ -4,5 +4,8 @@ sqlalchemy
 alembic
 psycopg[binary]
 pydantic-settings
+email-validator
+bcrypt
+pyjwt
 pytest
 httpx

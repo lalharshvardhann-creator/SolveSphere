@@ -16,5 +16,11 @@ class Settings(BaseSettings):
     )
     APP_VERSION: str = "1.0.0"
 
+    # Authentication & JWT Configuration
+    JWT_SECRET_KEY: str = "insecure-dev-secret-key-change-in-production-solvesphere"
+    JWT_ALGORITHM: str = "HS256"
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 1440  # 24 hours
+
 
 settings = Settings()
+
