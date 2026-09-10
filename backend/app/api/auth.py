@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 
 from app.api.deps import get_current_active_user
@@ -7,7 +8,6 @@ from app.db.session import get_db
 from app.models.user import User
 from app.schemas.auth import (
     TokenResponse,
-    UserLoginRequest,
     UserRegisterRequest,
     UserResponse,
 )
@@ -28,7 +28,10 @@ def register_user(
     db: Session = Depends(get_db),
 ):
     try:
-        user = AuthService.register_user(db=db, user_in=payload)
+        user = AuthService.register_user(
+            db=db,
+            user_in=payload,
+        )
         return user
     except ValueError as e:
         raise HTTPException(
@@ -45,14 +48,18 @@ def register_user(
     description="Authenticate with email and password to receive a JWT access token.",
 )
 def login(
-    payload: UserLoginRequest,
+    form_data: OAuth2PasswordRequestForm = Depends(),
     db: Session = Depends(get_db),
 ):
+    email = form_data.username.strip().lower()
+    password = form_data.password
+
     user = AuthService.authenticate_user(
         db=db,
-        email=payload.email,
-        password=payload.password,
+        email=email,
+        password=password,
     )
+
     if not user:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -73,6 +80,7 @@ def login(
             "role": user.role,
         }
     )
+
     return TokenResponse(
         access_token=access_token,
         token_type="bearer",
