@@ -3,6 +3,7 @@ from app.services.auth_service import AuthService
 from app.services.challenge_service import ChallengeService
 from app.services.gemini_service import GeminiService
 from app.services.institution_service import InstitutionService
+from app.services.matching_service import MatchingService
 
 __all__ = [
     "AuthService",
@@ -10,4 +11,6 @@ __all__ = [
     "InstitutionService",
     "GeminiService",
     "AIAnalysisService",
+    "MatchingService",
 ]
+

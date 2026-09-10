@@ -9,6 +9,7 @@ from app.models.user import User
 from app.schemas.ai_analysis import ChallengeAIAnalysisResponse
 from app.schemas.challenge import ChallengeCreate, ChallengeResponse, ChallengeUpdate
 from app.schemas.common import PaginatedResponse
+from app.schemas.matching import ChallengeMatchResponse
 from app.services.ai_analysis_service import AIAnalysisService
 from app.services.challenge_service import ChallengeService
 from app.services.gemini_service import (
@@ -16,6 +17,8 @@ from app.services.gemini_service import (
     GeminiConfigurationError,
     GeminiValidationError,
 )
+from app.services.matching_service import MatchingService
+
 
 router = APIRouter(prefix="/api/challenges", tags=["Challenges"])
 
@@ -176,4 +179,66 @@ def get_challenge_ai_analysis(
             detail=f"No AI analysis found for challenge with ID {challenge_id}.",
         )
     return analysis
+
+
+@router.post(
+    "/{challenge_id}/match",
+    response_model=ChallengeMatchResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Match institutions to a challenge",
+    description="Run explainable matching against registered institutions based on challenge AI analysis and persist proposed assignments.",
+)
+def match_challenge(
+    challenge_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_active_user),
+):
+    try:
+        matches = MatchingService.match_challenge(
+            db=db,
+            challenge_id=challenge_id,
+        )
+        return ChallengeMatchResponse(
+            challenge_id=challenge_id,
+            matches=matches,
+        )
+    except ValueError as e:
+        error_msg = str(e)
+        if "not found" in error_msg.lower():
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=error_msg,
+            )
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=error_msg,
+        )
+
+
+@router.get(
+    "/{challenge_id}/matches",
+    response_model=ChallengeMatchResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Get stored matching institutions for a challenge",
+    description="Retrieve previously stored proposed institution matches for a specific challenge.",
+)
+def get_challenge_matches(
+    challenge_id: int,
+    db: Session = Depends(get_db),
+):
+    try:
+        matches = MatchingService.get_stored_matches(
+            db=db,
+            challenge_id=challenge_id,
+        )
+        return ChallengeMatchResponse(
+            challenge_id=challenge_id,
+            matches=matches,
+        )
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=str(e),
+        )
+
 

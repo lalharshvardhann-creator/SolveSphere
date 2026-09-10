@@ -22,6 +22,10 @@ from app.schemas.institution import (
     InstitutionExpertiseResponse,
     InstitutionResponse,
 )
+from app.schemas.matching import (
+    ChallengeMatchResponse,
+    InstitutionMatchItem,
+)
 
 __all__ = [
     "PaginatedResponse",
@@ -36,8 +40,11 @@ __all__ = [
     "InstitutionDetailResponse",
     "InstitutionExpertiseCreate",
     "InstitutionExpertiseResponse",
+    "ChallengeMatchResponse",
+    "InstitutionMatchItem",
     "UserRegisterRequest",
     "UserLoginRequest",
     "TokenResponse",
     "UserResponse",
 ]
+

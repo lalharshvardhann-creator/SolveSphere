@@ -148,10 +148,10 @@ def test_login_success(client: TestClient, db_session: Session):
     db_session.commit()
 
     login_payload = {
-        "email": "sita.soren@solvesphere.jh",
+        "username": "sita.soren@solvesphere.jh",
         "password": "CorrectPassword123!",
     }
-    response = client.post("/api/auth/login", json=login_payload)
+    response = client.post("/api/auth/login", data=login_payload)
     assert response.status_code == status.HTTP_200_OK
     data = response.json()
     assert "access_token" in data
@@ -173,7 +173,7 @@ def test_login_wrong_password(client: TestClient, db_session: Session):
 
     response = client.post(
         "/api/auth/login",
-        json={"email": "testwrongpw@solvesphere.jh", "password": "WrongPassword!"},
+        data={"username": "testwrongpw@solvesphere.jh", "password": "WrongPassword!"},
     )
     assert response.status_code == status.HTTP_401_UNAUTHORIZED
     assert response.json()["detail"] == "Incorrect email or password"
@@ -183,7 +183,7 @@ def test_login_nonexistent_user(client: TestClient):
     """Test login with an email that does not exist returns 401 Unauthorized."""
     response = client.post(
         "/api/auth/login",
-        json={"email": "ghost@solvesphere.jh", "password": "AnyPassword123!"},
+        data={"username": "ghost@solvesphere.jh", "password": "AnyPassword123!"},
     )
     assert response.status_code == status.HTTP_401_UNAUTHORIZED
     assert response.json()["detail"] == "Incorrect email or password"
@@ -203,10 +203,11 @@ def test_login_inactive_user(client: TestClient, db_session: Session):
 
     response = client.post(
         "/api/auth/login",
-        json={"email": "inactive@solvesphere.jh", "password": "ValidPassword123!"},
+        data={"username": "inactive@solvesphere.jh", "password": "ValidPassword123!"},
     )
     assert response.status_code == status.HTTP_403_FORBIDDEN
     assert "inactive" in response.json()["detail"].lower()
+
 
 
 def test_auth_me_success(client: TestClient, db_session: Session):

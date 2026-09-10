@@ -228,7 +228,8 @@ def test_alembic_configuration():
     script = ScriptDirectory.from_config(config)
     heads = script.get_heads()
     assert len(heads) == 1
-    assert heads[0] == "87db6a21b127"
+    assert heads[0] == "d60d18122ebc"
+
 
 
 def test_fastapi_app_and_health_endpoint():
